@@ -1,24 +1,23 @@
-use clap::{App, Arg};
+use std::env;
+use std::io::{self, BufRead};
 
-mod crt;
-use crt::get_main;
-
-mod alien_vault;
-use alien_vault::alien;
+pub mod engine;
+use engine::crt;
+use engine::alien_vault;
 
 fn main() {
-    let matches = App::new("domni")
-        .version("0.1.0")
-        .author("R4vanan <devilface1999@gmail.com>")
-        .about("A command line tool for domain intelligence gathering")
-        .arg(Arg::with_name("DOMAIN")
-            .help("Sets the domain to search")
-            .required(true)
-            .index(1))
-        .get_matches();
+    let mut domain = String::new();
 
-    let domain = matches.value_of("DOMAIN").unwrap();
-    get_main(domain).expect("domain not found!");
-    alien(domain).expect("domain not found!");
+    // Check if command line arguments were provided
+    if let Some(arg) = env::args().nth(1) {
+        domain = arg;
+    } else {
+        // Read from standard input if no command line arguments were provided
+        let stdin = io::stdin();
+        let mut handle = stdin.lock();
+        handle.read_line(&mut domain).unwrap();
+        domain = domain.trim().to_owned();
+    }
+    alien_vault::alien(&domain).expect("domain not found!");
+    crt::get_main(&domain).expect("domain not found!");
 }
-
